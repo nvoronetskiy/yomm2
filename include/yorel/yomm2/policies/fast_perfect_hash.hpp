@@ -36,6 +36,12 @@ struct yOMM2_API_gcc fast_perfect_hash : virtual type_hash {
         return (hash_mult * type) >> hash_shift;
     }
 
+    static bool has_type_id(type_id type)
+	{
+		auto index = fast_perfect_hash<Policy>::hash_type_id(type);
+		return !(index >= fast_perfect_hash<Policy>::hash_length);
+	}
+
     template<typename ForwardIterator>
     static void hash_initialize(ForwardIterator first, ForwardIterator last) {
         std::vector<type_id> buckets;
@@ -164,6 +170,17 @@ template<class Policy>
 struct yOMM2_API_gcc checked_perfect_hash : virtual fast_perfect_hash<Policy>,
                                             virtual runtime_checks {
     static std::vector<type_id> control;
+
+    static bool has_type_id(type_id type)
+	{
+        if (fast_perfect_hash<Policy>::has_type_id(type))
+        {
+            auto index = fast_perfect_hash<Policy>::hash_type_id(type);
+            return (control[index] == type);
+        }
+
+		return false;
+	}
 
     static type_id hash_type_id(type_id type) {
         auto index = fast_perfect_hash<Policy>::hash_type_id(type);
